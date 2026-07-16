@@ -1,0 +1,124 @@
+services:
+
+  mariadb:
+
+    container_name: mariadb
+
+    build: ./requirements/mariadb
+
+    env_file: .env
+
+    networks:
+
+      - inception
+
+    volumes:
+
+      - mariadb:/var/lib/mysql
+
+    secrets:
+
+      - db_password
+
+      - db_root_password
+
+    restart: unless-stopped
+
+  wordpress:
+
+    container_name: wordpress
+
+    build: ./requirements/wordpress
+
+    env_file: .env
+
+    depends_on:
+
+      - mariadb
+
+    networks:
+
+      - inception
+
+    volumes:
+
+      - wordpress:/var/www/html
+
+    secrets:
+
+      - db_password
+
+      - credentials
+
+    restart: unless-stopped
+
+  nginx:
+
+    container_name: nginx
+
+    build: ./requirements/nginx
+
+    depends_on:
+
+      - wordpress
+
+    networks:
+
+      - inception
+
+    volumes:
+
+      - wordpress:/var/www/html
+
+    ports:
+
+      - "443:443"
+
+    restart: unless-stopped
+
+networks:
+
+  inception:
+
+    driver: bridge
+
+volumes:
+
+  mariadb:
+
+    driver: local
+
+    driver_opts:
+
+      type: none
+
+      o: bind
+
+      device: /home/alvanaut/data/mariadb
+
+  wordpress:
+
+    driver: local
+
+    driver_opts:
+
+      type: none
+
+      o: bind
+
+      device: /home/alvanaut/data/wordpress
+
+secrets:
+
+  db_password:
+
+    file: ../secrets/db_password.txt
+
+  db_root_password:
+
+    file: ../secrets/db_root_password.txt
+
+  credentials:
+
+    file: ../secrets/credentials.txt
+
